@@ -1,11 +1,17 @@
+// neo.js
+// 🌈 Neon Emoji Glow — by Helal (Credit Locked 🔒)
+
 const fs = require("fs");
 const path = require("path");
 const { createCanvas, loadImage } = require("canvas");
 
+// 🔒 Author Lock
+const LOCKED_AUTHOR = "Helal";
+
 module.exports = {
   config: {
     name: "neo",
-    version: "1.1",
+    version: "1.2",
     author: "Helal",
     countDown: 5,
     role: 0,
@@ -16,20 +22,25 @@ module.exports = {
 
   onStart: async function ({ api, event, message, args }) {
     try {
-      // Check if replied message has an image attachment
+      // 🔒 Credit Lock Verification
+      if (this.config.author !== LOCKED_AUTHOR) {
+        return message.reply("🚫 This command is credit-locked. Author name modification detected.");
+      }
+
+      // Ensure user replied to an image
       const reply = event.messageReply;
       if (!reply || !reply.attachments || reply.attachments.length === 0) {
-        return message.reply("Please reply to an image when using this command.");
+        return message.reply("❌ Please reply to an image when using this command.");
       }
 
       const imgUrl = reply.attachments[0].url;
 
       // Parse arguments
       const emoji = args[0] || "✨";
-      const color = args[1] || "#00ffff"; // Default cyan color
+      const color = args[1] || "#00ffff"; // Default cyan
       const position = (args[2] || "middle").toLowerCase();
 
-      // Load the image
+      // Load image
       const img = await loadImage(imgUrl);
       const width = img.width;
       const height = img.height;
@@ -40,7 +51,7 @@ module.exports = {
       // Draw original image
       ctx.drawImage(img, 0, 0, width, height);
 
-      // Set neon text style
+      // Neon emoji style
       ctx.font = `${Math.floor(height / 5)}px Arial`;
       ctx.textBaseline = "middle";
       ctx.textAlign = "center";
@@ -48,7 +59,7 @@ module.exports = {
       ctx.shadowBlur = 25;
       ctx.fillStyle = color;
 
-      // Calculate coordinates based on position
+      // Position setup
       let x = width / 2;
       let y = height / 2;
 
@@ -77,29 +88,27 @@ module.exports = {
           break;
         case "middle":
         default:
-          // center position
           break;
       }
 
-      // Draw the neon emoji
+      // Draw neon emoji
       ctx.fillText(emoji, x, y);
 
-      // Save the image to temp file
+      // Save and send result
       const outputPath = path.join(__dirname, "temp_neon.png");
-      const buffer = canvas.toBuffer("image/png");
-      fs.writeFileSync(outputPath, buffer);
+      fs.writeFileSync(outputPath, canvas.toBuffer("image/png"));
 
-      // Send the image
       message.reply(
         {
-          body: `Neon effect added!\nEmoji: ${emoji}\nColor: ${color}\nPosition: ${position}`,
+          body: `✨ Neon emoji added!\nEmoji: ${emoji}\nColor: ${color}\nPosition: ${position}`,
           attachment: fs.createReadStream(outputPath),
         },
         () => fs.unlinkSync(outputPath)
       );
+
     } catch (err) {
       console.error(err);
-      message.reply("Something went wrong. Please reply to an image and use the correct command format.");
+      message.reply("⚠️ Error: Please reply to a photo and use the correct command format.");
     }
   },
 };
