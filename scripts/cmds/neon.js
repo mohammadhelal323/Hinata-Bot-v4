@@ -1,13 +1,18 @@
+// neon.js
+// 🌀 Neon Glow Effects — by Helal (Credit Locked 🔒)
+
 const fs = require("fs");
 const path = require("path");
 const { createCanvas, loadImage } = require("canvas");
 
+// 🔒 Author Lock
+const LOCKED_AUTHOR = "Helal";
+
+// Shape functions
 function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
   let rot = Math.PI / 2 * 3;
-  let x = cx;
-  let y = cy;
+  let x = cx, y = cy;
   let step = Math.PI / spikes;
-
   ctx.beginPath();
   ctx.moveTo(cx, cy - outerRadius);
   for (let i = 0; i < spikes; i++) {
@@ -36,7 +41,6 @@ function drawDiamond(ctx, cx, cy, width, height) {
 }
 
 function drawRose(ctx, cx, cy, size) {
-  // Simple rose petals like loops - artistic neon rose effect
   ctx.lineWidth = 6;
   ctx.shadowColor = ctx.strokeStyle;
   ctx.shadowBlur = 25;
@@ -56,15 +60,20 @@ function drawRose(ctx, cx, cy, size) {
 module.exports = {
   config: {
     name: "neon",
-    version: "1.2",
+    version: "1.3",
     author: "Helal",
     category: "image",
     shortDescription: "Add neon glow shapes or text to photo",
-    guide: "/neon <type> <color> [text] (reply to a photo)",
+    guide: "/neon <type> <color> [text] (reply to a photo)"
   },
 
   onStart: async function ({ event, message, args }) {
     try {
+      // 🔒 Credit Lock Check
+      if (this.config.author !== LOCKED_AUTHOR) {
+        return message.reply("🚫 This command is credit-locked and cannot run because the author name was modified.");
+      }
+
       if (!event.messageReply || !event.messageReply.attachments || event.messageReply.attachments.length === 0) {
         return message.reply("❌ Please reply to a photo.");
       }
@@ -73,16 +82,7 @@ module.exports = {
       let color = args[1] || "#00ffff";
       let text = args.slice(2).join(" ") || "NEON";
 
-      const validTypes = [
-        "circle",
-        "square",
-        "triangle",
-        "diamond",
-        "star",
-        "text",
-        "rose"
-      ];
-
+      const validTypes = ["circle", "square", "triangle", "diamond", "star", "text", "rose"];
       if (!validTypes.includes(type)) {
         return message.reply("❌ Invalid type! Use one of: " + validTypes.join(", "));
       }
@@ -93,10 +93,10 @@ module.exports = {
       const canvas = createCanvas(img.width, img.height);
       const ctx = canvas.getContext("2d");
 
-      // Draw original image
+      // Draw base image
       ctx.drawImage(img, 0, 0, img.width, img.height);
 
-      // Setup neon glow styles
+      // Neon style
       ctx.lineWidth = 15;
       ctx.shadowColor = color;
       ctx.shadowBlur = 30;
@@ -108,10 +108,9 @@ module.exports = {
 
       const centerX = img.width / 2;
       const centerY = img.height / 2;
-      const padding = 25;
-      const size = Math.min(centerX, centerY) - padding;
+      const size = Math.min(centerX, centerY) - 25;
 
-      // Draw shapes/text according to type
+      // Draw type
       switch (type) {
         case "circle":
           ctx.beginPath();
@@ -144,7 +143,7 @@ module.exports = {
           break;
       }
 
-      // Save image and send
+      // Save output
       const outPath = path.join(__dirname, "neon_output.png");
       fs.writeFileSync(outPath, canvas.toBuffer());
 
