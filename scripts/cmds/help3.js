@@ -7,16 +7,14 @@ module.exports = {
     version: "2.5",
     author: "Helal",
     role: 0,
-    category: "system",        // ✅ FIXED: Required for command install
-    shortDescription: "Show full command list with animation (4 edit only)",
+    category: "system",
+    shortDescription: "Show full command list without edit animation",
   },
 
   onStart: async function ({ api, event, args }) {
     const commands = global.GoatBot?.commands || new Map();
 
-    // =============================
-    // 🔍 /help3 <command> → details
-    // =============================
+    // 🔹 /help3 <command> → show info
     if (args[0]) {
       const cmdName = args[0].toLowerCase();
 
@@ -35,7 +33,7 @@ module.exports = {
       const info =
         `🧩 𝙲𝙾𝙼𝙼𝙰𝙽𝙳 𝙸𝙽𝙵𝙾\n` +
         `━━━━━━━━━━━━━━━━━━\n` +
-        `🔹 Name: ${convertFont(name)}\n` +
+        `🔹 Name: ${name}\n` +
         `🔹 Aliases: ${aliases?.join(", ") || "None"}\n` +
         `🔹 Version: ${version || "1.0"}\n` +
         `🔹 Role: ${role}\n` +
@@ -46,93 +44,36 @@ module.exports = {
       return api.sendMessage(info, event.threadID);
     }
 
-    // =============================
-    // ⏳ Loading animation
-    // =============================
-    const sent = await api.sendMessage("⏳ Loading help menu...", event.threadID);
-
-    const frames = [
-      "[░░░░░░░░░░] ⚪ 0%",
-      "[██░░░░░░░░] 🟠 25%",
-      "[████░░░░░░] 🟡 50%",
-      "[██████████] 🟢 100%",
-    ];
-
-    for (let i = 0; i < frames.length; i++) {
-      await sleep(700);
-
-      if (i === frames.length - 1) {
-        const menu = buildMenu(commands);
-        await api.editMessage(menu, sent.messageID);
-      } else {
-        await api.editMessage(frames[i], sent.messageID);
-      }
+    // 🔹 Full menu without edit animation
+    const categories = {};
+    for (const [name, cmd] of commands.entries()) {
+      const cat = cmd.config?.category?.toUpperCase() || "🎲 OTHER";
+      if (!categories[cat]) categories[cat] = [];
+      categories[cat].push(name);
     }
-  },
-};
 
-// 🧩 Build final menu
-function buildMenu(commands) {
-  const categories = {};
+    let output =
+      "┍━━━━━━━━━━━━━━━━◊\n" +
+      "┋ [✦𝙷𝚒𝚗𝚊𝚝𝚊 Bot Menu✦]\n" +
+      "┕━━━━━━━━━━━━━━◊\n";
 
-  for (const [name, cmd] of commands.entries()) {
-    const cat = cmd.config?.category?.toUpperCase() || "🎲 OTHER";
-    if (!categories[cat]) categories[cat] = [];
-    categories[cat].push(name);
-  }
-
-  let output =
-    "┍━━━━━━━━━━━━━━━━◊\n" +
-    "┋ [✦ 𝙲𝚊𝚝 𝙱𝚘𝚝 𝚖𝚎𝚗𝚞 ✦]\n" +
-    "┕━━━━━━━━━━━━━━◊\n";
-
-  for (const [cat, cmds] of Object.entries(categories)) {
-    const chunks = chunkArray(cmds, 6);
-
-    chunks.forEach((box, idx) => {
-      output += `┍━━━[ ${cat}${chunks.length > 1 ? ` ${idx + 1}` : ""} ]\n`;
-
-      for (let i = 0; i < box.length; i += 2) {
-        const a = box[i] ? `🔹 ${convertFont(box[i])}` : "";
-        const b = box[i + 1] ? `   🔹 ${convertFont(box[i + 1])}` : "";
+    for (const [cat, cmds] of Object.entries(categories)) {
+      output += `┍━━━[ ${cat} ]\n`;
+      for (let i = 0; i < cmds.length; i += 2) {
+        const a = cmds[i] ? `🔹 ${cmds[i]}` : "";
+        const b = cmds[i + 1] ? `   🔹 ${cmds[i + 1]}` : "";
         output += `┋${a}${b}\n`;
       }
-
       output += "┕━━━━━━━━━━━━◊\n";
-    });
-  }
+    }
 
-  output +=
-    "\n━━━━━━━━━━━━━━━━━━\n" +
-    `📌 Total Commands: ${commands.size}\n` +
-    `🔑 Prefix: /\n` +
-    `👑 Owner: 𝙷𝚎𝚕𝚊𝚕\n` +
-    `💡 Use: /help3 <command>\n` +
-    "━━━━━━━━━━━━━━━━━━";
+    output +=
+      `\n📌 Total Commands: ${commands.size}\n` +
+      `🔑 Prefix: /\n` +
+      `👑 Owner: Helal\n` +
+      `💡 Use: /help3 <command>\n` +
+      "━━━━━━━━━━━━━━━━━━";
 
-  return output;
-}
-
-// Utility Functions
-function chunkArray(arr, size) {
-  const out = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-  return out;
-}
-
-function convertFont(text) {
-  const normal = "abcdefghijklmnopqrstuvwxyz";
-  const fancy = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ";
-
-  return text
-    .split("")
-    .map(ch => {
-      const i = normal.indexOf(ch.toLowerCase());
-      return i !== -1 ? fancy[i] : ch;
-    })
-    .join("");
-}
-
-function sleep(ms) {
-  return new Promise(res => setTimeout(res, ms));
-}
+    return api.sendMessage(output, event.threadID);
+  },
+};
