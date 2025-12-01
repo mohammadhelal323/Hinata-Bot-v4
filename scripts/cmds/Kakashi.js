@@ -6,7 +6,7 @@ module.exports = {
   config: {
     name: "kakashi",
     version: "1.0",
-    author: "Saimx69x",
+    author: "Helal",
     countDown: 5,
     role: 0,
     description: { en: "Get 6 random Kakashi Hatake images from Google Images." },
