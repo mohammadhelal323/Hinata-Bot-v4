@@ -5,7 +5,7 @@ const canvas = require("canvas");
 module.exports = {
   config: {
     name: "mark",
-    author: "Rishad",
+    author: "SiFu",
     countDown: 5,
     role: 0,
     category: "fun",
